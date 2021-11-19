@@ -48,3 +48,14 @@ test8() :- writeln('fails: solveRooms(alnwick, [foyer, throne, escape])'),
            solveRooms(alnwick, [foyer, throne, passage]).
 test9() :- writeln('fails: solveRoomsWithinCost(alnwick, 4)'),
            solveRoomsWithinCost(alnwick, 4).
+
+testAll() :-
+    test1(),
+    test2(),
+    test3(),
+    test4(),
+    test5(),
+    test6(),
+    test7(),
+    test8(),
+    test9().

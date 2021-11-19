@@ -1,64 +1,50 @@
+% function for printing a list line by line for each element
 % Base case, empty list, do nothing
 printList([]).
-printList([H|T]) :- format('~w ~n', [H]), printList(T).
+% many ways to do, Format vs Writeln are just 2 of them, both work
+% printList([H|T]) :- format('~w ~n', [H]), printList(T).
+printList([H|T]) :- writeln(H), printList(T).
 
-push(X, [], [X]).
-push(X, [H | T], [H | W]) :- push(X, T, W).  
+% push an answer onto the end of a list
+push(X, [], [X]).                             % base case
+push(X, [H | T], [H | W]) :- push(X, T, W).   % common case/recursion
 
-% Add your comments here
+% find a solution that includes a given set of rooms
 solveRooms(Castle, L) :- 
-  tc(enter, exit),
+  routes(Castle, enter, NL),
+  contains_all(L, NL),
   printList(NL).
 
-% tc(X,Y,L,[X|[Y|L]]) :- room(Castle,X,Y,Z).
-% tc(X,Y,L,NL) :- room(Castle,X,Y,Z), tc(W, Y, [X|L], NL).
+% helper function to get all possible routes in the castle
+% base case for if the room found leads to the exit
+routes(Castle, Location, [Location|[exit|[]]]) :- 
+  room(Castle, Location, exit, _).
 
-tc(X,Y) :- room(X,Y).
-tc(X,Y) :- room(X,W), tc(W, Y).
+% Typical case/ recursion on all available connections
+routes(Castle, Location, [Location|Route]) :- 
+  room(Castle, Location, Next, _),
+  routes(Castle, Next, Route).
 
-% 
-% Add your comments here
+% check the required rooms are in the returned route
+% iterates through the first list checking each element(H) is a member of L
+contains_all([], _). 
+contains_all([H|T], L) :- contains_all(T, L), member(H, L).
+
+
+% Find a route that has a cost within the given limit
 solveRoomsWithinCost(Castle, Limit) :- 
+  routeCost(Castle, enter, Limit, NL),
   printList(NL).
-% 
 
-% tc( From, To, Cost) :- tcWithCost( From, To, Cost).
-      tcWithCost(From, To, Cost) :- edge(From, To, Cost).
-tcWithCost(From, To, Cost) :- edge(From, Y, CostX), tcWithCost(Y, To, CostY), Cost is CostX + CostY.
+% Helper function for getting the limit to check
+% base case
+routeCost(Castle, Location, RemainingLim, [Location|[exit|[]]]) :-
+  room(Castle, Location, exit, Cost),
+  RemainingLim - Cost >= 0,
+  room(Castle, Location, exit, _).
 
-% appears that a depth first and retreat will be important
-% are built ina
-
-
-% First castle for testing
-% The castle is a set of room facts of the form
-% room(Castle, FromRoom, ToRoom, cost).
-room(dunstanburgh, enter, foyer, 1).
-room(dunstanburgh, foyer, livingRoom, 1).
-room(dunstanburgh, foyer, hall, 2).
-room(dunstanburgh, hall, kitchen, 4).
-room(dunstanburgh, hall, garage, 3).
-room(dunstanburgh, kitchen, exit, 1).
-
-% % Second castle for testing
-% room(windsor, enter, foyer, 1).
-% room(windsor, foyer, hall, 2).
-% room(windsor, foyer, dungeon, 1).
-% room(windsor, hall, throne, 1).
-% room(windsor, hall, stairs, 4).
-% room(windsor, stairs, dungeon, 3).
-% room(windsor, throne, stairs, 1).
-% room(windsor, dungeon, escape, 5).
-% room(windsor, escape, exit, 1).
-
-% % Third castle for testing
-% room(alnwick, enter, foyer, 1).
-% room(alnwick, foyer, hall, 2).
-% room(alnwick, hall, throne, 1).
-% room(alnwick, hall, stairs, 4).
-% room(alnwick, stairs, dungeon, 3).
-% room(alnwick, dungeon, foundry, 5).
-% room(alnwick, foyer, passage, 1).
-% room(alnwick, passage, foundry, 1).
-% room(alnwick, foundry, exit, 4).
-
+% recursive case/step
+routeCost(Castle, Location, RemainingLim, [Location|Route]) :- 
+  room(Castle, Location, Next, Cost),
+  NewLim = RemainingLim - Cost,
+  routeCost(Castle, Next, NewLim, Route).
